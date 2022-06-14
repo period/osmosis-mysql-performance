@@ -154,9 +154,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
     private static final int INSERT_BULK_ROW_COUNT_RELATION = 100;
     private static final int INSERT_BULK_ROW_COUNT_RELATION_TAG = 100;
     private static final int INSERT_BULK_ROW_COUNT_RELATION_MEMBER = 100;
-    
-    private static final int TRANSACTION_SIZE = 100000;
-    
     private String insertSqlSingleNode;
     private String insertSqlBulkNode;
     private String insertSqlSingleNodeTag;
@@ -193,7 +190,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
     private long minWayId;
     private long maxRelationId;
     private long minRelationId;
-    private long transactionSizeCount;
     private final TileCalculator tileCalculator;
     private final MemberTypeRenderer memberTypeRenderer;
     private boolean initialized;
@@ -258,7 +254,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
         minWayId = Long.MAX_VALUE;
         maxRelationId = Long.MIN_VALUE;
         minRelationId = Long.MAX_VALUE;
-        transactionSizeCount = 0;
 
         tileCalculator = new TileCalculator();
         memberTypeRenderer = new MemberTypeRenderer();
@@ -598,16 +593,10 @@ public class ApidbWriter implements Sink, EntityProcessor {
 
                 populateNodeParameters(bulkNodeStatement, prmIndex, node);
                 prmIndex += INSERT_PRM_COUNT_NODE;
-                transactionSizeCount++;
             }
 
             try {
                 bulkNodeStatement.executeUpdate();
-                
-                if (transactionSizeCount % TRANSACTION_SIZE == 0) {
-                	dbCtx.commit();
-                }
-                
             } catch (SQLException e) {
                 throw new OsmosisRuntimeException("Unable to bulk insert nodes into the database.", e);
             }
@@ -634,8 +623,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
                 addNodeTags(node);
             }
         }
-        
-        dbCtx.commit();
     }
 
     /**
@@ -654,15 +641,10 @@ public class ApidbWriter implements Sink, EntityProcessor {
             for (int i = 0; i < INSERT_BULK_ROW_COUNT_NODE_TAG; i++) {
                 populateEntityTagParameters(bulkNodeTagStatement, prmIndex, nodeTagBuffer.remove(0));
                 prmIndex += INSERT_PRM_COUNT_NODE_TAG;
-                transactionSizeCount++;
             }
 
             try {
                 bulkNodeTagStatement.executeUpdate();
-                
-                if (transactionSizeCount % TRANSACTION_SIZE == 0) {
-                	dbCtx.commit();
-                }
             } catch (SQLException e) {
                 throw new OsmosisRuntimeException("Unable to bulk insert node tags into the database.", e);
             }
@@ -679,8 +661,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
                 }
             }
         }
-        
-        dbCtx.commit();
     }
 
     /**
@@ -707,15 +687,10 @@ public class ApidbWriter implements Sink, EntityProcessor {
 
                 populateWayParameters(bulkWayStatement, prmIndex, way);
                 prmIndex += INSERT_PRM_COUNT_WAY;
-                transactionSizeCount++;
             }
 
             try {
                 bulkWayStatement.executeUpdate();
-                
-                if (transactionSizeCount % TRANSACTION_SIZE == 0) {
-                	dbCtx.commit();
-                }
             } catch (SQLException e) {
                 throw new OsmosisRuntimeException("Unable to bulk insert ways into the database.", e);
             }
@@ -744,8 +719,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
                 addWayNodes(way);
             }
         }
-        
-        dbCtx.commit();
     }
 
     /**
@@ -764,15 +737,10 @@ public class ApidbWriter implements Sink, EntityProcessor {
             for (int i = 0; i < INSERT_BULK_ROW_COUNT_WAY_TAG; i++) {
                 populateEntityTagParameters(bulkWayTagStatement, prmIndex, wayTagBuffer.remove(0));
                 prmIndex += INSERT_PRM_COUNT_WAY_TAG;
-                transactionSizeCount++;
             }
 
             try {
                 bulkWayTagStatement.executeUpdate();
-                
-                if (transactionSizeCount % TRANSACTION_SIZE == 0) {
-                	dbCtx.commit();
-                }
             } catch (SQLException e) {
                 throw new OsmosisRuntimeException("Unable to bulk insert way tags into the database.", e);
             }
@@ -789,8 +757,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
                 }
             }
         }
-        
-        dbCtx.commit();
     }
 
     /**
@@ -809,14 +775,10 @@ public class ApidbWriter implements Sink, EntityProcessor {
             for (int i = 0; i < INSERT_BULK_ROW_COUNT_WAY_NODE; i++) {
                 populateWayNodeParameters(bulkWayNodeStatement, prmIndex, wayNodeBuffer.remove(0));
                 prmIndex += INSERT_PRM_COUNT_WAY_NODE;
-                transactionSizeCount++;
             }
 
             try {
                 bulkWayNodeStatement.executeUpdate();
-                if (transactionSizeCount % TRANSACTION_SIZE == 0) {
-                	dbCtx.commit();
-                }
             } catch (SQLException e) {
                 throw new OsmosisRuntimeException("Unable to bulk insert way nodes into the database.", e);
             }
@@ -833,8 +795,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
                 }
             }
         }
-        
-        dbCtx.commit();
     }
 
     /**
@@ -861,14 +821,10 @@ public class ApidbWriter implements Sink, EntityProcessor {
 
                 populateRelationParameters(bulkRelationStatement, prmIndex, relation);
                 prmIndex += INSERT_PRM_COUNT_RELATION;
-                transactionSizeCount++;
             }
 
             try {
                 bulkRelationStatement.executeUpdate();
-                if (transactionSizeCount % TRANSACTION_SIZE == 0) {
-                	dbCtx.commit();
-                }
             } catch (SQLException e) {
                 throw new OsmosisRuntimeException("Unable to bulk insert relations into the database.", e);
             }
@@ -897,8 +853,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
                 addRelationMembers(relation);
             }
         }
-        
-        dbCtx.commit();
     }
 
     /**
@@ -918,14 +872,10 @@ public class ApidbWriter implements Sink, EntityProcessor {
             for (int i = 0; i < INSERT_BULK_ROW_COUNT_RELATION_TAG; i++) {
                 populateEntityTagParameters(bulkRelationTagStatement, prmIndex, relationTagBuffer.remove(0));
                 prmIndex += INSERT_PRM_COUNT_RELATION_TAG;
-                transactionSizeCount++;
             }
 
             try {
                 bulkRelationTagStatement.executeUpdate();
-                if (transactionSizeCount % TRANSACTION_SIZE == 0) {
-                	dbCtx.commit();
-                }
             } catch (SQLException e) {
                 throw new OsmosisRuntimeException("Unable to bulk insert relation tags into the database.", e);
             }
@@ -942,8 +892,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
                 }
             }
         }
-        
-        dbCtx.commit();
     }
 
     /**
@@ -963,14 +911,10 @@ public class ApidbWriter implements Sink, EntityProcessor {
             for (int i = 0; i < INSERT_BULK_ROW_COUNT_RELATION_MEMBER; i++) {
                 populateRelationMemberParameters(bulkRelationMemberStatement, prmIndex, relationMemberBuffer.remove(0));
                 prmIndex += INSERT_PRM_COUNT_RELATION_MEMBER;
-                transactionSizeCount++;
             }
 
             try {
                 bulkRelationMemberStatement.executeUpdate();
-                if (transactionSizeCount % TRANSACTION_SIZE == 0) {
-                	dbCtx.commit();
-                }
             } catch (SQLException e) {
                 throw new OsmosisRuntimeException("Unable to bulk insert relation members into the database.", e);
             }
@@ -987,8 +931,6 @@ public class ApidbWriter implements Sink, EntityProcessor {
                 }
             }
         }
-        
-        dbCtx.commit();
     }
     
     
